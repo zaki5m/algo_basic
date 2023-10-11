@@ -1,4 +1,3 @@
-open Printf
 open Effect
 open Effect.Shallow
 
@@ -17,7 +16,7 @@ module type STATE = sig
   val  print_color : color -> string
 end
 
-module State : STATE = struct
+module CardState : STATE = struct
 
   type player =  A | B
 
@@ -120,3 +119,4 @@ module State : STATE = struct
     let player_b_hand = card_sort_first player_b_hand in
     loop player_a_hand player_b_hand shuffled_deck (fiber f) ()
 end
+
