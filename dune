@@ -1,3 +1,6 @@
 (executable
-  (name msg_passing)
+  (name algo)
+)
+(env
+    (dev (flags (:standard -warn-error -a)))
 )
