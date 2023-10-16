@@ -14,6 +14,10 @@ module type STATE = sig
   val hand : player -> (card_state * (int*color)) list
   val change : player -> (int*color)-> (card_state * (int*color))
   val print_card : card_state * (int*color) -> string
+  val color_of_string : string -> color
+  val print_player : player -> string
+  val another_player : player -> player
+  val print_color : color -> string
 end
 
 module CardState : STATE = struct
@@ -44,7 +48,20 @@ module CardState : STATE = struct
     Open -> "###"
     | Close -> ":::"
 
+  let color_of_string str = match str with
+    "White" -> White
+    | "Black" -> Black
+    | _ -> failwith "Invalid color"
+
   let print_card (card_state, (num,color)) = print_card_state card_state ^ " (" ^ string_of_int num ^ "," ^ print_color color ^ ")"
+
+  let print_player player = match player with
+    A -> "A:"
+    | B -> "B:"
+
+  let another_player player = match player with
+    A -> B
+    | B -> A
 
   let shuffle lst =
     let compare _ _ = (Random.int 3) - 1 in

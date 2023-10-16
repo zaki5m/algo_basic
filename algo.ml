@@ -12,7 +12,7 @@ type _ Effect.t += Try : Card_state.player * (int * (int * Card_state.color)) ->
 type _ Effect.t += Wait : unit -> (response * response) Effect.t
 
 type game_satate = 
-  Attack of int * (int * Card_state.color)
+  Attack
   | Defend
 
 type user_status =
@@ -55,18 +55,23 @@ let rec run_both a b =
       run_both (fun () -> continue k1 return_value) (fun () -> continue k2 return_value)
   | _ -> failwith "improper synchronization"
 
-(* ここでのplayerは相手のことを指す *)
+
+
+(* ここでのplayerは自分のことを指す *)
 (* TODO: 変数名いい感じにする *)
 let rec player_action action player = match action with
-  Attack (i, (j, c)) -> 
-    printf "Player %d attacks %d\n" i j;
-    let (result,_) = perform (Try (player, (i, (j, c)))) in
+  Attack -> 
+    print_endline ("Player " ^ Card_state.print_player player ^ " attack!! " ^ "Please enter a string:");
+    let input = input_line stdin in
+    let (i, (j, c)) = Scanf.sscanf input "%d %d %s" (fun i j c -> (i, (j, Card_state.color_of_string c))) in
+    printf "place %d attack (%d, %s)\n" i j (Card_state.print_color c);
+    let (result,_) = perform (Try (Card_state.another_player player, (i, (j, c)))) in
     if result = Success then
-      printf "Player %d hits %d\n" i j
+      printf "Hit!! place %d attack (%d, %s)\n" i j (Card_state.print_color c)
     else
-      printf "Player %d misses %d\n" i j;
+      printf "Miss!! place %d attack (%d, %s)\n" i j (Card_state.print_color c);
   | Defend -> 
-    printf "Player defends\n";
+    print_endline ("Player " ^ Card_state.print_player player ^ " defend!! ");
     let (_,result) = perform (Wait ()) in
     if result = Success then
       printf "defends success\n"
@@ -75,4 +80,4 @@ let rec player_action action player = match action with
 
  
 
-let _ = Card_state.run (fun () -> run_both (step (player_action (Attack (2, (3, Card_state.Black)))) Card_state.A) (step (player_action Defend) Card_state.B))
+let _ = Card_state.run (fun () -> run_both (step (player_action Attack) Card_state.A) (step (player_action Defend) Card_state.B))
