@@ -18,6 +18,7 @@ module type STATE = sig
   val print_player : player -> string
   val another_player : player -> player
   val print_color : color -> string
+  val is_win : (card_state * (int*color)) list -> bool
 end
 
 module CardState : STATE = struct
@@ -112,6 +113,13 @@ module CardState : STATE = struct
   let deck = [(0,White);(1,White);(2,White);(3,White);(4,White);(5,White);(6,White);(7,White);(8,White);(9,White);(10,White);(11,White);
               (0,Black);(1,Black);(2,Black);(3,Black);(4,Black);(5,Black);(6,Black);(7,Black);(8,Black);(9,Black);(10,Black);(11,Black)]
 
+  let is_win hand = 
+    let rec loop hand = match hand with
+      [] -> true
+      | (state,(_,_))::t -> if state = Close then false else loop t
+    in
+    loop hand  
+    
   let run f  =
     let rec loop : type a r. (card_state * (int*color)) list -> (card_state * (int*color)) list -> (int*color) list ->(a, r) continuation -> a -> r =
       fun player_a_hand player_b_hand shuffled_deck k x ->

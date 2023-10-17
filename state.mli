@@ -15,6 +15,7 @@ module type STATE = sig
     val print_player : player -> string
     val another_player : player -> player
     val print_color : color -> string
+    val is_win : (card_state * (int*color)) list -> bool
 end
 
 module CardState : STATE
