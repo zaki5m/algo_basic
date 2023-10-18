@@ -14,6 +14,11 @@ module type STATE = sig
   val hand : player -> (card_state * (int*color)) list
   val change : player -> (int*color)-> (card_state * (int*color))
   val print_card : card_state * (int*color) -> string
+  val color_of_string : string -> color
+  val print_player : player -> string
+  val another_player : player -> player
+  val print_color : color -> string
+  val is_win : (card_state * (int*color)) list -> bool
 end
 
 module CardState : STATE = struct
@@ -44,7 +49,20 @@ module CardState : STATE = struct
     Open -> "###"
     | Close -> ":::"
 
-  let print_card (card_state, (num,color)) = print_card_state card_state ^ " (" ^ string_of_int num ^ "," ^ print_color color ^ ")"
+  let color_of_string str = match str with
+    "White" -> White
+    | "Black" -> Black
+    | _ -> failwith "Invalid color"
+
+  let print_card (card_state, (num,color)) = print_card_state card_state ^ "(" ^ string_of_int num ^ "," ^ print_color color ^ ") "
+
+  let print_player player = match player with
+    A -> "A:"
+    | B -> "B:"
+
+  let another_player player = match player with
+    A -> B
+    | B -> A
 
   let shuffle lst =
     let compare _ _ = (Random.int 3) - 1 in
@@ -90,11 +108,18 @@ module CardState : STATE = struct
     if player = A then
       List.map (fun (a,b) -> if b = card then (Open,card) else (a,b)) a_hand, b_hand
     else
-      a_hand, List.map (fun (a,b) -> if b = card then (Open,card) else (a,b)) a_hand
+      a_hand, List.map (fun (a,b) -> if b = card then (Open,card) else (a,b)) b_hand
 
   let deck = [(0,White);(1,White);(2,White);(3,White);(4,White);(5,White);(6,White);(7,White);(8,White);(9,White);(10,White);(11,White);
               (0,Black);(1,Black);(2,Black);(3,Black);(4,Black);(5,Black);(6,Black);(7,Black);(8,Black);(9,Black);(10,Black);(11,Black)]
 
+  let is_win hand = 
+    let rec loop hand = match hand with
+      [] -> true
+      | (state,(_,_))::t -> if state = Close then false else loop t
+    in
+    loop hand  
+    
   let run f  =
     let rec loop : type a r. (card_state * (int*color)) list -> (card_state * (int*color)) list -> (int*color) list ->(a, r) continuation -> a -> r =
       fun player_a_hand player_b_hand shuffled_deck k x ->
