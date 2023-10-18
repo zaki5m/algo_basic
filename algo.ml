@@ -44,6 +44,8 @@ let result_deffend_converter result1 result2 = match result1, result2 with
   | Continue, Win -> Lose
   | _ -> Continue
 
+let print_hand player hand = 
+  print_endline ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) hand "")
 
 
 
@@ -86,25 +88,29 @@ let rec run_both a b =
   | _ -> failwith "improper synchronization"
 
 (* プレイヤーが最後に行うアクション *)
-let rec player_last_action action player response = match action, response with
+let player_last_action action player response = match action, response with
     Attack, Success -> print_endline ("Player " ^ Card_state.print_player player ^ " attack success!! ");
-                       let ((result, _), another_player_hand) = perform (Now (Card_state.another_player player)) in
-                        if result = Win then
-                          printf "Player %s win!!\n" (Card_state.print_player player)
-                        else
-                          print_endline ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) another_player_hand "")
+                       let ((result, _), player_hand) = perform (Now (Card_state.another_player player)) in
+                        let _ = if result = Win then
+                                  printf "Player %s win!!\n" (Card_state.print_player player)
+                                else
+                                  print_hand player player_hand in 
+                        result
     | Attack, Failure -> print_endline ("Player " ^ Card_state.print_player player ^ " attack failure!! ");
-                          let ((_, _), another_player_hand) = perform (Now (Card_state.another_player player)) in
-                          print_endline ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) another_player_hand "")
+                          let ((result, _), player_hand) = perform (Now (Card_state.another_player player)) in
+                          print_hand player player_hand;
+                          result
     | Defend, Success -> print_endline ("Player " ^ Card_state.print_player player ^ " defend success!! ");
-                          let ((_, _), another_player_hand) = perform (Now (Card_state.another_player player)) in
-                          print_endline ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) another_player_hand "")
+                          let ((_, result), player_hand) = perform (Now (Card_state.another_player player)) in
+                          print_hand player player_hand;
+                          result
     | Defend, Failure -> print_endline ("Player " ^ Card_state.print_player player ^ " defend failure!! ");
-                        let ((result, _), another_player_hand) = perform (Now (Card_state.another_player player)) in
-                        if result = Lose then
-                          printf "Player %s lose...\n" (Card_state.print_player player)
-                        else
-                          print_endline ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) another_player_hand "")
+                        let ((_, result), player_hand) = perform (Now (Card_state.another_player player)) in
+                        let _ = if result = Lose then
+                                  printf "Player %s lose...\n" (Card_state.print_player player)
+                                else
+                                  print_hand player player_hand in 
+                        result
 
 (* ここでのplayerは自分のことを指す *)
 (* TODO: 変数名いい感じにする *)
@@ -115,11 +121,19 @@ let rec player_action action player = match action with
     let (i, (j, c)) = Scanf.sscanf input "%d %d %s" (fun i j c -> (i, (j, Card_state.color_of_string c))) in
     printf "place %d attack (%d, %s)\n" i j (Card_state.print_color c);
     let (response,_) = perform (Try (Card_state.another_player player, (i, (j, c)))) in
-    player_last_action action player response
+    let result = player_last_action action player response in 
+    if result = Win then
+      ()
+    else 
+      player_action Defend player
   | Defend -> 
     print_endline ("Player " ^ Card_state.print_player player ^ " defend!! ");
     let (_,response) = perform (Wait ()) in
-    player_last_action action player response
+    let result = player_last_action action player response in 
+    if result = Lose then
+      ()
+    else
+      player_action Attack player
 
 
 
