@@ -1,5 +1,6 @@
 (executable
-  (name algo)
+  (name server_client)
+  (libraries unix str)
 )
 (env
     (dev (flags (:standard -warn-error -a)))
