@@ -53,13 +53,21 @@ let connect_to_peer ip port =
 
 
 let () =
+  Printf.printf "server or client?\n";
+  flush Stdlib.stdout;
   let role = input_line Stdlib.stdin in
   match role with
   | "server" ->
+      Printf.printf "Enter port number:\n";
+      flush Stdlib.stdout;
       let port = int_of_string (input_line Stdlib.stdin) in
       start_server port
   | "client" ->
+      Printf.printf "Enter IP address:\n";
+      flush Stdlib.stdout;
       let ip = input_line Stdlib.stdin in
+      Printf.printf "Enter port number:\n";
+      flush Stdlib.stdout;
       let port = int_of_string (input_line Stdlib.stdin) in
       connect_to_peer ip port
   | _ ->
