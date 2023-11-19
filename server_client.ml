@@ -9,7 +9,7 @@ let contains substring str =
   with Not_found -> false
 
 let start_server port =
-  let buffer_size = 200 in 
+  let buffer_size = 400 in 
   let addr = ADDR_INET (inet_addr_any, port) in
   let server_socket = socket PF_INET SOCK_STREAM 0 in
   bind server_socket addr;
@@ -27,7 +27,7 @@ let start_server port =
   
 
 let connect_to_peer ip port =
-  let buffer_size = 200 in 
+  let buffer_size = 400 in 
   let addr = ADDR_INET (inet_addr_of_string ip, port) in
   let socket = socket PF_INET SOCK_STREAM 0 in
   connect socket addr;

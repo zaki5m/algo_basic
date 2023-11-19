@@ -10,6 +10,7 @@ module type STATE = sig
     val run : (unit -> unit) -> unit
     val hand : player -> (card_state * (int*color)) list
     val change : player -> (int*color)-> (card_state * (int*color))
+    val last : unit -> (int*color)
     val print_card : card_state * (int*color) -> string
     val print_reverse_card : card_state * (int*color) -> string
     val color_of_string : string -> color

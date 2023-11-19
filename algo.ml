@@ -108,6 +108,7 @@ let player_last_action action player response = match action, response with
                         result
     | Attack, Failure ->  let msg = ("Player " ^ Card_state.print_player player ^ " attack failure!!\n") in 
                           Io_Action.printbuf player msg;
+                          let _ = Card_state.change player (Card_state.last ()) in
                           let ((result, _), player_hand) = perform (Now (Card_state.another_player player)) in
                           let msg = print_hand player player_hand in 
                           Io_Action.printbuf player msg;
@@ -134,6 +135,12 @@ let player_last_action action player response = match action, response with
 (* TODO: 変数名いい感じにする *)
 let rec player_action action player = match action with
   Attack -> 
+    let card = Card_state.get player in
+    let msg = ("Player " ^ Card_state.print_player player ^ " Get Card: " ^ Card_state.print_card card ^ "\n") in
+    Io_Action.printbuf player msg;
+    let hand = Card_state.hand player in
+    let msg = ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) hand "" ^ "\n") in
+    Io_Action.printbuf player msg;
     let msg = ("Player " ^ Card_state.print_player player ^ " attack!!\n") in
     Io_Action.printbuf player msg;
     let msg = "Please enter a card:\n" in
