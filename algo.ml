@@ -71,6 +71,9 @@ let step f v () =
             let hand = Card_state.hand player in
             let msg = ("Player " ^ Card_state.print_player player ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_card a ^ b) hand "" ^ "\n") in 
             Io_Action.printbuf player msg;
+            let hand2 = Card_state.hand (Card_state.another_player player) in
+            let msg2 = ("Player " ^ Card_state.print_player (Card_state.another_player player) ^ " hand: " ^ List.fold_right (fun a b -> Card_state.print_reverse_card a ^ b) hand2 "" ^ "\n") in 
+            Io_Action.printbuf player msg2;
             let result = Card_state.is_win hand in
             if result then
               After_attack ((Win, hand), k)

@@ -14,6 +14,7 @@ module type STATE = sig
   val hand : player -> (card_state * (int*color)) list
   val change : player -> (int*color)-> (card_state * (int*color))
   val print_card : card_state * (int*color) -> string
+  val print_reverse_card : card_state * (int*color) -> string
   val color_of_string : string -> color
   val print_player : player -> string
   val another_player : player -> player
@@ -55,6 +56,10 @@ module CardState : STATE = struct
     | _ -> failwith "Invalid color"
 
   let print_card (card_state, (num,color)) = print_card_state card_state ^ "(" ^ string_of_int num ^ "," ^ print_color color ^ ") "
+
+  let print_reverse_card (card_state, (num,color)) =  match card_state with
+    Open -> print_card_state card_state ^ "(" ^ string_of_int num ^ "," ^ print_color color ^ ") "
+    | Close -> print_card_state card_state ^ "(?,?) "
 
   let print_player player = match player with
     A -> "A:"
@@ -144,8 +149,8 @@ module CardState : STATE = struct
         }
     in
     let shuffled_deck = shuffle deck in
-    let player_a_hand, shuffled_deck = card_take shuffled_deck 5 in
-    let player_b_hand, shuffled_deck = card_take shuffled_deck 5 in
+    let player_a_hand, shuffled_deck = card_take shuffled_deck 4 in
+    let player_b_hand, shuffled_deck = card_take shuffled_deck 4 in
     let player_a_hand = card_sort_first player_a_hand in
     let player_b_hand = card_sort_first player_b_hand in
     loop player_a_hand player_b_hand shuffled_deck (fiber f) ()
