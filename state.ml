@@ -13,7 +13,9 @@ module type STATE = sig
   val run : (unit -> unit) -> unit
   val hand : player -> (card_state * (int*color)) list
   val change : player -> (int*color)-> (card_state * (int*color))
+  val last : unit -> (int*color)
   val print_card : card_state * (int*color) -> string
+  val print_reverse_card : card_state * (int*color) -> string
   val color_of_string : string -> color
   val print_player : player -> string
   val another_player : player -> player
@@ -35,11 +37,15 @@ module CardState : STATE = struct
 
   type _ Effect.t += Change : player * (int*color) -> (card_state * (int*color)) Effect.t
 
+  type _ Effect.t += Last : unit -> (int*color) Effect.t
+
   let get player = perform (Get player)
 
   let hand player = perform (Hand player)
 
   let change player card = perform (Change (player,card))
+
+  let last () = perform (Last ())
 
   let print_color color = match color with
     White -> "White"
@@ -55,6 +61,10 @@ module CardState : STATE = struct
     | _ -> failwith "Invalid color"
 
   let print_card (card_state, (num,color)) = print_card_state card_state ^ "(" ^ string_of_int num ^ "," ^ print_color color ^ ") "
+
+  let print_reverse_card (card_state, (num,color)) =  match card_state with
+    Open -> print_card_state card_state ^ "(" ^ string_of_int num ^ "," ^ print_color color ^ ") "
+    | Close -> print_card_state card_state ^ "(?,?) "
 
   let print_player player = match player with
     A -> "A:"
@@ -121,8 +131,8 @@ module CardState : STATE = struct
     loop hand  
     
   let run f  =
-    let rec loop : type a r. (card_state * (int*color)) list -> (card_state * (int*color)) list -> (int*color) list ->(a, r) continuation -> a -> r =
-      fun player_a_hand player_b_hand shuffled_deck k x ->
+    let rec loop : type a r. (card_state * (int*color)) list -> (card_state * (int*color)) list -> (int*color) list -> (int*color) -> (a, r) continuation -> a -> r =
+      fun player_a_hand player_b_hand shuffled_deck last_card k x ->
         continue_with k x
         { retc = (fun result -> result);
           exnc = (fun e -> raise e);
@@ -131,23 +141,25 @@ module CardState : STATE = struct
             | Get player -> Some (fun (k: (b,r) continuation) ->
                     let card::shuffled_deck = shuffled_deck in
                     let player_a_hand , player_b_hand = card_insert player_a_hand player_b_hand card Close player in
-                    loop player_a_hand player_b_hand shuffled_deck k (Close ,card))
+                    loop player_a_hand player_b_hand shuffled_deck card k (Close ,card))
             | Hand player-> Some (fun (k: (b,r) continuation) ->
                     if player = A then
-                      loop player_a_hand player_b_hand shuffled_deck k player_a_hand
+                      loop player_a_hand player_b_hand shuffled_deck last_card k player_a_hand
                     else
-                      loop player_a_hand player_b_hand shuffled_deck k player_b_hand)
+                      loop player_a_hand player_b_hand shuffled_deck last_card k player_b_hand)
             | Change (player,card) -> Some (fun (k: (b,r) continuation) ->
                     let player_a_hand , player_b_hand = card_change player_a_hand player_b_hand card player in
-                    loop player_a_hand player_b_hand shuffled_deck k (Open ,card))
+                    loop player_a_hand player_b_hand shuffled_deck last_card k (Open ,card))
+            | Last () -> Some (fun (k: (b,r) continuation) ->
+                    loop player_a_hand player_b_hand shuffled_deck last_card k last_card)
             | _ -> None)
         }
     in
     let shuffled_deck = shuffle deck in
-    let player_a_hand, shuffled_deck = card_take shuffled_deck 5 in
-    let player_b_hand, shuffled_deck = card_take shuffled_deck 5 in
+    let player_a_hand, shuffled_deck = card_take shuffled_deck 4 in
+    let player_b_hand, shuffled_deck = card_take shuffled_deck 4 in
     let player_a_hand = card_sort_first player_a_hand in
     let player_b_hand = card_sort_first player_b_hand in
-    loop player_a_hand player_b_hand shuffled_deck (fiber f) ()
+    loop player_a_hand player_b_hand shuffled_deck (0,Black) (fiber f) ()
 end
 

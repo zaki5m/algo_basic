@@ -9,7 +9,7 @@ let contains substring str =
   with Not_found -> false
 
 let start_server port =
-  let buffer_size = 200 in 
+  let buffer_size = 400 in 
   let addr = ADDR_INET (inet_addr_any, port) in
   let server_socket = socket PF_INET SOCK_STREAM 0 in
   bind server_socket addr;
@@ -27,7 +27,7 @@ let start_server port =
   
 
 let connect_to_peer ip port =
-  let buffer_size = 200 in 
+  let buffer_size = 400 in 
   let addr = ADDR_INET (inet_addr_of_string ip, port) in
   let socket = socket PF_INET SOCK_STREAM 0 in
   connect socket addr;
@@ -53,13 +53,21 @@ let connect_to_peer ip port =
 
 
 let () =
+  Printf.printf "server or client?\n";
+  flush Stdlib.stdout;
   let role = input_line Stdlib.stdin in
   match role with
   | "server" ->
+      Printf.printf "Enter port number:\n";
+      flush Stdlib.stdout;
       let port = int_of_string (input_line Stdlib.stdin) in
       start_server port
   | "client" ->
+      Printf.printf "Enter IP address:\n";
+      flush Stdlib.stdout;
       let ip = input_line Stdlib.stdin in
+      Printf.printf "Enter port number:\n";
+      flush Stdlib.stdout;
       let port = int_of_string (input_line Stdlib.stdin) in
       connect_to_peer ip port
   | _ ->
